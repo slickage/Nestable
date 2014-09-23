@@ -1,6 +1,8 @@
 Nestable
 ========
 
+## MODIFIED TO ALLOW PROTECTION OF ROOT
+
 ## PLEASE NOTE
 
 **I cannot provide any support or guidance beyond this README. If this code helps you that's great but I have no plans to develop Nestable beyond this demo (it's not a final product and has limited functionality). I cannot reply to any requests for help.**
@@ -19,13 +21,13 @@ Write your nested HTML lists like so:
 
     <div class="dd">
         <ol class="dd-list">
-            <li class="dd-item" data-id="1">
+            <li class="dd-item" data-id="1" data-top="true">
                 <div class="dd-handle">Item 1</div>
             </li>
-            <li class="dd-item" data-id="2">
+            <li class="dd-item" data-id="2" data-top="true">
                 <div class="dd-handle">Item 2</div>
             </li>
-            <li class="dd-item" data-id="3">
+            <li class="dd-item" data-id="3" data-top="true">
                 <div class="dd-handle">Item 3</div>
                 <ol class="dd-list">
                     <li class="dd-item" data-id="4">
@@ -42,6 +44,9 @@ Write your nested HTML lists like so:
 Then activate with jQuery like so:
 
     $('.dd').nestable({ /* config options */ });
+
+## ADDED SUPPORT FOR PROTECTROOT (Be sure to include data-top="true" to root level elements)
+    $('.dd').nestable({ protectRoot: true });
 
 ### Events
 
