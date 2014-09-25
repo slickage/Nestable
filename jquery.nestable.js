@@ -292,6 +292,7 @@
             // fix for zepto.js
             //this.placeEl.replaceWith(this.dragEl.children(this.options.itemNodeName + ':first').detach());
             var el = this.dragEl.children(this.options.itemNodeName).first();
+
             el[0].parentNode.removeChild(el[0]);
             this.placeEl.replaceWith(el);
 
@@ -391,8 +392,12 @@
                     // we can't decrease a level if an item preceeds the current one
                     next = this.placeEl.next(opt.itemNodeName);
                     var prevParentIsRoot = prev.parent().parent().attr('data-top') || false;
+                    var placeParentIsRoot = this.placeEl.parent().parent().attr('data-top') || false;
+                    var prevIsRoot = prev.attr('data-top') || false;
 
-                    if(opt.protectRoot && prevParentIsRoot) { return; }
+                    if(opt.protectRoot && (prevParentIsRoot || prevIsRoot || (!prev.length && placeParentIsRoot))) {
+                        return;
+                    }
 
                     if (!next.length) {
                         parent = this.placeEl.parent();
@@ -432,12 +437,12 @@
              * move vertical
              */
             if (!mouse.dirAx || isNewRoot || isEmpty) {
-                // check if groups match if dragging over new root
-
+                parent = this.placeEl.parent();
                 var pointItemIsRoot = $(this.pointEl[0]).attr('data-top') || false;
-                if (opt.protectRoot && (pointItemIsRoot && !dragItemIsRoot || dragItemIsRoot && !pointItemIsRoot)) {
+                if (opt.protectRoot && dragItemIsRoot && !pointItemIsRoot) {
                     return;
                 }
+                // check if groups match if dragging over new root
                 if (isNewRoot && opt.group !== pointElRoot.data('nestable-group')) {
                     return;
                 }
@@ -447,18 +452,69 @@
                     return;
                 }
                 var before = e.pageY < (this.pointEl.offset().top + this.pointEl.height() / 2);
-                    parent = this.placeEl.parent();
                 // if empty create new list to replace empty placeholder
+
+
                 if (isEmpty) {
                     list = $(document.createElement(opt.listNodeName)).addClass(opt.listClass);
                     list.append(this.placeEl);
                     this.pointEl.replaceWith(list);
                 }
+
                 else if (before) {
-                    this.pointEl.before(this.placeEl);
+                    prev = this.pointEl.prev();
+                    if (opt.protectRoot && pointItemIsRoot && !dragItemIsRoot && prev.length) {
+                        list = prev.find(opt.listNodeName);
+                        if (!list.length) {
+                            list = $('<' + opt.listNodeName + '/>').addClass(opt.listClass);
+                            list.append(this.placeEl);
+                            prev.append(list);
+                            this.setParent(prev);
+                        }
+                        else {
+                            // else append to next level up
+                            list = prev.children(opt.listNodeName).last();
+                            list.append(this.placeEl);
+                        }
+                    }
+                    else if (opt.protectRoot && pointItemIsRoot && !dragItemIsRoot && !prev.length) {
+                        return;
+                    }
+                    else {
+                        this.pointEl.before(this.placeEl);
+                    }
                 }
                 else {
-                    this.pointEl.after(this.placeEl);
+                    prev = this.pointEl.prev();
+                    next = this.pointEl.next();
+                    if (opt.protectRoot && pointItemIsRoot && !dragItemIsRoot && next.length) {
+
+                        list = next.find(opt.listNodeName);
+                        if (!list.length) {
+                            list = $('<' + opt.listNodeName + '/>').addClass(opt.listClass);
+                            list.append(this.placeEl);
+                            next.append(list);
+                            this.setParent(next);
+                        }
+                        else {
+                            // else append to next level up
+                            list = next.children(opt.listNodeName).last();
+                            list.append(this.placeEl);
+                        }
+                    }
+                    else if (opt.protectRoot && pointItemIsRoot && !dragItemIsRoot && !next.length) {
+                        next = this.pointEl;
+                        list = next.find(opt.listNodeName);
+                        if (!list.length) {
+                            list = $('<' + opt.listNodeName + '/>').addClass(opt.listClass);
+                            list.append(this.placeEl);
+                            next.append(list);
+                            this.setParent(next);
+                        }
+                    }
+                    else {
+                        this.pointEl.after(this.placeEl);
+                    }
                 }
                 if (!parent.children().length) {
                     this.unsetParent(parent.parent());
