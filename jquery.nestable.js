@@ -504,7 +504,7 @@
                     else if (opt.protectRoot && pointItemIsRoot && !dragItemIsRoot && !next.length) {
                         next = this.pointEl;
                         list = next.find(opt.listNodeName);
-                        if (!list.length) {
+                        if (!list.length || !list.children().length) {
                             list = $('<' + opt.listNodeName + '/>').addClass(opt.listClass);
                             list.append(this.placeEl);
                             next.append(list);
