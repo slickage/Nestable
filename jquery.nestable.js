@@ -234,7 +234,9 @@
 
         setParent: function(li)
         {
-            if (li.children(this.options.listNodeName).length) {
+            var listNode = li.children(this.options.listNodeName);
+            var alreadySet = li.children()[0].nodeName === 'BUTTON';
+            if (listNode.length && listNode.children().length && !alreadySet) {
                 li.prepend($(this.options.expandBtnHTML));
                 li.prepend($(this.options.collapseBtnHTML));
             }
