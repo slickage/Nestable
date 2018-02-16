@@ -361,9 +361,8 @@
              * move horizontal
              */
             if (mouse.dirAx && mouse.distAxX >= opt.threshold) {
-                if (opt.protectRoot && dragItemIsRoot) {
-                    return;
-                }
+                // Do nothing if dragging a root item
+                if (opt.protectRoot && dragItemIsRoot) { return; }
 
                 // reset move distance on x-axis for new phase
                 mouse.distAxX = 0;
@@ -395,12 +394,8 @@
                     var prevParentIsRoot = prev.parent().parent().attr('data-top') || false;
                     var placeParentIsRoot = this.placeEl.parent().parent().attr('data-top') || false;
                     var prevIsRoot = prev.attr('data-top') || false;
-
-                    if(opt.protectRoot && (prevParentIsRoot || prevIsRoot || (!prev.length && placeParentIsRoot))) {
-                        return;
-                    }
-
-                    if (!next.length) {
+                    var protectRoot = opt.protectRoot && (prevParentIsRoot || prevIsRoot || (!prev.length && placeParentIsRoot));
+                    if (!next.length && !protectRoot) {
                         parent = this.placeEl.parent();
                         this.placeEl.closest(opt.itemNodeName).after(this.placeEl);
                         if (!parent.children().length) {
@@ -464,8 +459,11 @@
                     // otherwise target the item under the pointer.
                     target = this.pointEl;
                     prev = this.pointEl.prev();
-                    var before = e.pageY < (this.pointEl.offset().top + this.pointEl.height() / 2);
-                    if (before && prev.length) { target = prev; }
+                    var before = e.pageY < (target.offset().top + target.height() / 2);
+                    if (before && prev.length) {
+                        target = prev;
+                        before = e.pageY < (target.offset().top + target.height() / 2);
+                    }
 
                     // Item under draggable element is a protected root item
                     // and the item being dragged is not a root item
