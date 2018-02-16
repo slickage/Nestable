@@ -307,7 +307,7 @@
 
         dragMove: function(e)
         {
-            var list, parent, prev, next, depth,
+            var list, parent, prev, next, target, depth,
                 opt   = this.options,
                 mouse = this.mouse,
                 dragItemIsRoot = $(this.dragItem).attr('data-top') || false;
@@ -380,12 +380,12 @@
                             list = $('<' + opt.listNodeName + '/>').addClass(opt.listClass);
                             list.append(this.placeEl);
                             prev.append(list);
-                            this.setParent(prev);
                         } else {
                             // else append to next level up
                             list = prev.children(opt.listNodeName).last();
                             list.append(this.placeEl);
                         }
+                        this.setParent(prev);
                     }
                 }
                 // decrease horizontal level
@@ -451,75 +451,43 @@
                 if (depth > opt.maxDepth) {
                     return;
                 }
-                var before = e.pageY < (this.pointEl.offset().top + this.pointEl.height() / 2);
                 parent = this.placeEl.parent();
                 // if empty create new list to replace empty placeholder
-
-
                 if (isEmpty) {
                     list = $(document.createElement(opt.listNodeName)).addClass(opt.listClass);
                     list.append(this.placeEl);
                     this.pointEl.replaceWith(list);
                 }
-
-                else if (before) {
-                    prev = this.pointEl.prev();
-                    if (opt.protectRoot && pointItemIsRoot && !dragItemIsRoot && prev.length) {
-                        list = prev.find(opt.listNodeName);
-                        if (!list.length) {
-                            list = $('<' + opt.listNodeName + '/>').addClass(opt.listClass);
-                            list.append(this.placeEl);
-                            prev.append(list);
-                            this.setParent(prev);
-                        }
-                        else {
-                            // else append to next level up
-                            list = prev.children(opt.listNodeName).last();
-                            list.append(this.placeEl);
-                        }
-                    }
-                    else if (opt.protectRoot && pointItemIsRoot && !dragItemIsRoot && !prev.length) {
-                        return;
-                    }
-                    else {
-                        this.pointEl.before(this.placeEl);
-                    }
-                }
                 else {
+                    // Check if cursor is above the halfway point of the target element
+                    // if it's above the halfway mark target the element above if there
+                    // otherwise target the item under the pointer.
+                    target = this.pointEl;
                     prev = this.pointEl.prev();
-                    next = this.pointEl.next();
-                    if (opt.protectRoot && pointItemIsRoot && !dragItemIsRoot && next.length) {
+                    var before = e.pageY < (this.pointEl.offset().top + this.pointEl.height() / 2);
+                    if (before && prev.length) { target = prev; }
 
-                        list = next.find(opt.listNodeName);
-                        if (!list.length) {
-                            list = $('<' + opt.listNodeName + '/>').addClass(opt.listClass);
+                    // Item under draggable element is a protected root item
+                    // and the item being dragged is not a root item
+                    if (opt.protectRoot && pointItemIsRoot && !dragItemIsRoot) {
+                        list = target.find(opt.listNodeName); // Get node list of target root item
+                        // List is already there add placeholder
+                        if (list.length) {
+                            list = target.children(opt.listNodeName).last();
                             list.append(this.placeEl);
-                            next.append(list);
-                            this.setParent(next);
                         }
+                        // Target item's list doesn't exist, create it and add placeholder
                         else {
-                            // else append to next level up
-                            list = next.children(opt.listNodeName).last();
-                            list.append(this.placeEl);
-                        }
-                    }
-                    else if (opt.protectRoot && pointItemIsRoot && !dragItemIsRoot && !next.length) {
-                        next = this.pointEl;
-                        list = next.find(opt.listNodeName);
-                        if (!list.length || !list.children().length) {
                             list = $('<' + opt.listNodeName + '/>').addClass(opt.listClass);
                             list.append(this.placeEl);
-                            next.append(list);
-                            this.setParent(next);
+                            target.append(list);
                         }
+                        this.setParent(target);
                     }
-                    else {
-                        this.pointEl.after(this.placeEl);
-                    }
+                    else if (before) { this.pointEl.before(this.placeEl); }
+                    else { this.pointEl.after(this.placeEl); }
                 }
-                if (!parent.children().length) {
-                    this.unsetParent(parent.parent());
-                }
+                if (!parent.children().length) { this.unsetParent(parent.parent()); }
                 if (!this.dragRootEl.find(opt.itemNodeName).length) {
                     this.dragRootEl.append('<div class="' + opt.emptyClass + '"/>');
                 }
